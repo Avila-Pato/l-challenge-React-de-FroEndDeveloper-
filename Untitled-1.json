@@ -1,0 +1,53 @@
+{
+    "categories": [
+        {
+            "id": 1,
+            "name": "Bebidas",
+            "sublevels": [
+                {
+                    "id": 1,
+                    "name": "Subcategory 1",
+                    "sublevels": [
+                        {
+                            "id": 2,
+                            "name": "Con azucar"
+                        },
+                        {
+                            "id": 3,
+                            "name": "Subcategory Sin azucar"
+                        }
+                    ]
+                }
+              
+            ]
+        },
+        {
+            "id": 2,
+            "name": "Desayunos",
+            "sublevels": [
+                {
+                    "id": 4,
+                    "name": "Fake 1",
+                    "sublevels": [
+                        {
+                            "id": 5,
+                            "name": "Fake 2"
+                        },
+                        {
+                            "id": 6,
+                            "name": "Fake 3",
+                            "sublevels": [
+                                {
+                                    "id": 7,
+                                    "name": "Fake 4"
+                                }
+                            ]
+                        }
+
+                    ]
+                }
+            ]
+        }
+      
+    ]
+}

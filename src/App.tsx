@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import categoriesData from "./data/categories.json";
 import { products } from "./data/product.json";
+import { FaStore } from "react-icons/fa";
 
 type Category = {
   id: number;
@@ -146,6 +147,10 @@ function App() {
 
   return (
     <div>
+     <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
+      <FaStore style={{ marginRight: "10px" }} />
+      <span>Mi Tienda</span>
+    </div>
       <Menu
         categories={categoriesData.categories}
         onClick={handleCategoryClick}
@@ -192,6 +197,7 @@ function App() {
 
       {/* Productos filtrados */}
       <div>
+      
         {matches.map((product) => (
           <div
             key={product.id}

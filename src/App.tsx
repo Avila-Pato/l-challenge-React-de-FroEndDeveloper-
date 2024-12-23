@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import categoriesData from './data/categories.json';
+import React, { useMemo, useState } from "react";
+import categoriesData from "./data/categories.json";
+import { products } from "./data/product.json";
 
 type Category = {
   id: number;
@@ -9,7 +10,7 @@ type Category = {
 
 type MenuProps = {
   categories: Category[];
-  onClick: (category: Category | null ) => void;
+  onClick: (category: Category | null) => void;
 };
 
 type MenuItemProps = {
@@ -26,19 +27,20 @@ const MenuItem: React.FC<MenuItemProps> = ({ category, onClick }) => {
     event.stopPropagation();
 
     if (isCollapsed) {
-
       onClick(null);
     }
     setCollapsed((isCollapsed) => !isCollapsed);
-    }
-
+  }
 
   return (
     <li>
-    <div  onClick={() => onClick(category)}>
-      <span>{category.name}  </span>{""}
+      <div onClick={() => onClick(category)}>
+        <span>{category.name} </span>
+        {""}
         {category.sublevels && (
-          <button onClick={handleCollapse}>{isCollapsed ? 'Cerrar' : 'Abrir'}</button> 
+          <button onClick={handleCollapse}>
+            {isCollapsed ? "Cerrar" : "Abrir"}
+          </button>
         )}
       </div>
       {category.sublevels && isCollapsed && (
@@ -59,12 +61,16 @@ const Menu: React.FC<MenuProps> = ({ categories, onClick }) => {
 };
 
 function App() {
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-    null
-  );
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+
+  // Filtracion de productos
+  const matches = useMemo(() => {
+    return products.filter((product) => (selectedCategory ? product.sublevel_id === selectedCategory.id : true));
+  },[selectedCategory]); // Array de dependencias
+  
 
   function handleCategoryClick(category: Category | null) {
-      // console.log('Categoría seleccionada:', category); // Verificar que se selecciona
+    // console.log('Categoría seleccionada:', category); // Verificar que se selecciona
     setSelectedCategory(category);
   }
 
@@ -77,6 +83,22 @@ function App() {
       {selectedCategory && (
         <p>Categoría seleccionada: {selectedCategory.name}</p>
       )}
+      <div>
+        {matches.map((product) => (
+          <div
+            key={product.id}
+            style={{
+              border: "1px solid black",
+              margin: "10px",
+              padding: "10px",
+            }}
+          >
+            <p>
+              {product.name} ({product.price}){" "}
+            </p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

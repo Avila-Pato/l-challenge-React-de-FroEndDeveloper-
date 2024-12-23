@@ -14,11 +14,10 @@
                         },
                         {
                             "id": 3,
-                            "name": "Subcategory Sin azucar"
+                            "name": "Sin azucar"
                         }
                     ]
                 }
-              
             ]
         },
         {
@@ -43,11 +42,41 @@
                                 }
                             ]
                         }
-
                     ]
                 }
             ]
+        },
+        {
+            "id": 3,
+            "name": "Almuerzos",
+            "sublevels": [
+                {
+                    "id": 8,
+                    "name": "Comida rápida"
+                },
+                {
+                    "id": 9,
+                    "name": "Comida casera"
+                }
+            ]
+        },
+        {
+            "id": 4,
+            "name": "Vinos",
+            "sublevels": [
+                {
+                    "id": 10,
+                    "name": "Tintos"
+                },
+                {
+                    "id": 11,
+                    "name": "Blancos"
+                },
+                {
+                    "id": 12,
+                    "name": "Espumantes"
+                }
+            ]
         }
-      
     ]
 }

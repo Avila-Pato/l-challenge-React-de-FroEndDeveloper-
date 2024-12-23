@@ -1,35 +1,84 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState } from 'react';
+import categoriesData from './data/categories.json';
 
-function App() {
-  const [count, setCount] = useState(0)
+type Category = {
+  id: number;
+  name: string;
+  sublevels?: Category[];
+};
+
+type MenuProps = {
+  categories: Category[];
+  onClick: (category: Category | null ) => void;
+};
+
+type MenuItemProps = {
+  category: Category;
+  onClick: (category: Category | null) => void;
+};
+
+const MenuItem: React.FC<MenuItemProps> = ({ category, onClick }) => {
+  const [isCollapsed, setCollapsed] = useState(false);
+
+  function handleCollapse(event: React.MouseEvent) {
+    // permite que el evento no se propague a diferentes handlers
+    // en general va preventdefault pero aqui ahi un 2 handler por ello se usa stopPropagation
+    event.stopPropagation();
+
+    if (isCollapsed) {
+
+      onClick(null);
+    }
+    setCollapsed((isCollapsed) => !isCollapsed);
+    }
+
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <li>
+    <div  onClick={() => onClick(category)}>
+      <span>{category.name}  </span>{""}
+        {category.sublevels && (
+          <button onClick={handleCollapse}>{isCollapsed ? 'Cerrar' : 'Abrir'}</button> 
+        )}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+      {category.sublevels && isCollapsed && (
+        <Menu categories={category.sublevels} onClick={onClick} />
+      )}
+    </li>
+  );
+};
+
+const Menu: React.FC<MenuProps> = ({ categories, onClick }) => {
+  return (
+    <ol>
+      {categories.map((category) => (
+        <MenuItem key={category.id} category={category} onClick={onClick} />
+      ))}
+    </ol>
+  );
+};
+
+function App() {
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+    null
+  );
+
+  function handleCategoryClick(category: Category | null) {
+      // console.log('Categoría seleccionada:', category); // Verificar que se selecciona
+    setSelectedCategory(category);
+  }
+
+  return (
+    <div>
+      <Menu
+        categories={categoriesData.categories}
+        onClick={handleCategoryClick}
+      />
+      {selectedCategory && (
+        <p>Categoría seleccionada: {selectedCategory.name}</p>
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;

@@ -18,33 +18,25 @@ type MenuItemProps = {
   onClick: (category: Category | null) => void;
 };
 
-// Definiendo el tipo de producto para el carrito
-
 type Product = {
-  id: string;          
-  name: string;         
-  quantity: number;     
-  price: string;       
-  available: boolean;  
-  sublevel_id: number;  
+  id: string;
+  name: string;
+  quantity: number;
+  price: string;
+  available: boolean;
+  sublevel_id: number;
 };
-
-
 
 type CarItem = {
   quantity: number;
   product: Product;
-}
-
+};
 
 const MenuItem: React.FC<MenuItemProps> = ({ category, onClick }) => {
   const [isCollapsed, setCollapsed] = useState(false);
 
   function handleCollapse(event: React.MouseEvent) {
-    // permite que el evento no se propague a diferentes handlers
-    // en general va preventdefault pero aqui ahi un 2 handler por ello se usa stopPropagation
     event.stopPropagation();
-
     if (isCollapsed) {
       onClick(null);
     }
@@ -55,7 +47,6 @@ const MenuItem: React.FC<MenuItemProps> = ({ category, onClick }) => {
     <li>
       <div onClick={() => onClick(category)}>
         <span>{category.name} </span>
-        {""}
         {category.sublevels && (
           <button onClick={handleCollapse}>
             {isCollapsed ? "Cerrar" : "Abrir"}
@@ -79,65 +70,79 @@ const Menu: React.FC<MenuProps> = ({ categories, onClick }) => {
   );
 };
 
-
-
 function App() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [cart, setCart] = useState<Map<Product["id"], CarItem>>(
-    () => new Map<Product["id"], CarItem>());
+    () => new Map<Product["id"], CarItem>()
+  );
 
-  // manejando Handlevents 
+  // Nuevos estados para filtros
+  const [availabilityFilter, setAvailabilityFilter] = useState<boolean | null>(null);
+  const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
+  const [sortByStock, setSortByStock] = useState(false);
+
   function handleDecrement(product: Product) {
     setCart((prevCart) => {
-      const newCart = new Map(prevCart); // Crea una nueva referencia
+      const newCart = new Map(prevCart);
       const item = newCart.get(product.id);
-  
+
       if (item) {
         if (item.quantity > 1) {
-          item.quantity -= 1; // Decrementa la cantidad
+          item.quantity -= 1;
           newCart.set(product.id, item);
         } else {
-          newCart.delete(product.id); // Elimina el producto si la cantidad llega a 0
+          newCart.delete(product.id);
         }
       }
-  
+
       return newCart;
     });
   }
-  
+
   function handleIncrement(product: Product) {
     setCart((prevCart) => {
-      const newCart = new Map(prevCart); // Crea una nueva referencia
+      const newCart = new Map(prevCart);
       const item = newCart.get(product.id);
-  
+
       if (!item) {
         newCart.set(product.id, {
           quantity: 1,
           product,
         });
       } else {
-        item.quantity += 1; // Incrementa la cantidad
+        item.quantity += 1;
         newCart.set(product.id, item);
       }
-  
+
       return newCart;
     });
   }
-  
-  console.log(cart);
 
-  
-  // Filtracion de productos
+  // Filtrado con disponibilidad, rango de precios y orden por stock
   const matches = useMemo(() => {
-    return products.filter((product) => (selectedCategory ? product.sublevel_id === selectedCategory.id : true));
-  },[selectedCategory]); // Array de dependencias
-  
+    let filtered = products.filter((product) => {
+      const matchesCategory = selectedCategory ? product.sublevel_id === selectedCategory.id : true;
+      const matchesAvailability = availabilityFilter === null || product.available === availabilityFilter;
+      const productPrice = Number(product.price.replace(/[^0-9.-]+/g, "")); // Convertir el precio a número
+
+      const matchesPrice =
+        priceRange === null ||
+        (productPrice >= priceRange[0] && productPrice <= priceRange[1]);
+
+      return matchesCategory && matchesAvailability && matchesPrice;
+    });
+
+    // Ordenar por cantidad de stock si está activado
+    if (sortByStock) {
+      filtered = filtered.sort((a, b) => a.quantity - b.quantity);
+    }
+
+    return filtered;
+  }, [selectedCategory, availabilityFilter, priceRange, sortByStock]);
 
   function handleCategoryClick(category: Category | null) {
-    // console.log('Categoría seleccionada:', category); // Verificar que se selecciona
     setSelectedCategory(category);
   }
-
 
   return (
     <div>
@@ -145,33 +150,70 @@ function App() {
         categories={categoriesData.categories}
         onClick={handleCategoryClick}
       />
-      {selectedCategory && (
-        <p>Categoría seleccionada: {selectedCategory.name}</p>
-      )}
+      {selectedCategory && <p>Categoría seleccionada: {selectedCategory.name}</p>}
+
+      {/* Controles de filtro */}
+      <div>
+        <label>
+          Disponibilidad:
+          <select onChange={(e) => setAvailabilityFilter(e.target.value === "null" ? null : e.target.value === "true")}>
+            <option value="null">Todos</option>
+            <option value="true">Disponible</option>
+            <option value="false">No disponible</option>
+          </select>
+        </label>
+
+        <label>
+          Rango de precios:
+          <select onChange={(e) => {
+            const value = e.target.value;
+            if (value === "null") setPriceRange(null); // Resetear a "Todos"
+            else if (value === "0-3000") setPriceRange([0, 3000]);
+            else if (value === "3000-8000") setPriceRange([3000, 8000]);
+            else if (value === "8000-19000") setPriceRange([8000, 19000]);
+            else setPriceRange(null); // Caso para "Todos"
+          }}>
+            <option value="null">Todos</option>
+            <option value="0-3000">$0 - $3000</option>
+            <option value="3000-8000">$3000 - $8000</option>
+            <option value="8000-19000">$8000 - $19000</option>
+          </select>
+        </label>
+
+        <label>
+          Ordenar por stock:
+          <input
+            type="checkbox"
+            checked={sortByStock}
+            onChange={() => setSortByStock(!sortByStock)}
+          />
+        </label>
+      </div>
+
+      {/* Productos filtrados */}
       <div>
         {matches.map((product) => (
-         <div
-         key={product.id}
-         style={{
-           display: "grid",
-           gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-           border: "1px solid black",
-           margin: "10px",
-           padding: "10px",
-         }}
-       >
-         <div style={{ display: "flex", justifyContent: "space-between" }}>
-           <span>
-             {product.name} ({product.price}) - {product.quantity}
-           </span>
-         </div>
-         <div>
-           <button  onClick={() => handleDecrement(product)}>-</button>
-           <span>{cart.get(product.id)?.quantity || 0}</span>
-           <button onClick={() => handleIncrement(product)}>+</button>
-         </div>
-       </div>
-       
+          <div
+            key={product.id}
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              border: "1px solid black",
+              margin: "10px",
+              padding: "10px",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span>
+                {product.name} ({product.price}) - {product.quantity}
+              </span>
+            </div>
+            <div>
+              <button onClick={() => handleDecrement(product)}>-</button>
+              <span>{cart.get(product.id)?.quantity || 0}</span>
+              <button onClick={() => handleIncrement(product)}>+</button>
+            </div>
+          </div>
         ))}
       </div>
     </div>

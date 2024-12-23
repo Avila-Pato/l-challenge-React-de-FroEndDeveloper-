@@ -18,6 +18,25 @@ type MenuItemProps = {
   onClick: (category: Category | null) => void;
 };
 
+// Definiendo el tipo de producto para el carrito
+
+type Product = {
+  id: string;          
+  name: string;         
+  quantity: number;     
+  price: string;       
+  available: boolean;  
+  sublevel_id: number;  
+};
+
+
+
+type CarItem = {
+  quantity: number;
+  product: Product;
+}
+
+
 const MenuItem: React.FC<MenuItemProps> = ({ category, onClick }) => {
   const [isCollapsed, setCollapsed] = useState(false);
 
@@ -60,9 +79,54 @@ const Menu: React.FC<MenuProps> = ({ categories, onClick }) => {
   );
 };
 
+
+
 function App() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [cart, setCart] = useState<Map<Product["id"], CarItem>>(
+    () => new Map<Product["id"], CarItem>());
 
+  // manejando Handlevents 
+  function handleDecrement(product: Product) {
+    setCart((prevCart) => {
+      const newCart = new Map(prevCart); // Crea una nueva referencia
+      const item = newCart.get(product.id);
+  
+      if (item) {
+        if (item.quantity > 1) {
+          item.quantity -= 1; // Decrementa la cantidad
+          newCart.set(product.id, item);
+        } else {
+          newCart.delete(product.id); // Elimina el producto si la cantidad llega a 0
+        }
+      }
+  
+      return newCart;
+    });
+  }
+  
+  function handleIncrement(product: Product) {
+    setCart((prevCart) => {
+      const newCart = new Map(prevCart); // Crea una nueva referencia
+      const item = newCart.get(product.id);
+  
+      if (!item) {
+        newCart.set(product.id, {
+          quantity: 1,
+          product,
+        });
+      } else {
+        item.quantity += 1; // Incrementa la cantidad
+        newCart.set(product.id, item);
+      }
+  
+      return newCart;
+    });
+  }
+  
+  console.log(cart);
+
+  
   // Filtracion de productos
   const matches = useMemo(() => {
     return products.filter((product) => (selectedCategory ? product.sublevel_id === selectedCategory.id : true));
@@ -73,6 +137,7 @@ function App() {
     // console.log('Categoría seleccionada:', category); // Verificar que se selecciona
     setSelectedCategory(category);
   }
+
 
   return (
     <div>
@@ -85,18 +150,28 @@ function App() {
       )}
       <div>
         {matches.map((product) => (
-          <div
-            key={product.id}
-            style={{
-              border: "1px solid black",
-              margin: "10px",
-              padding: "10px",
-            }}
-          >
-            <p>
-              {product.name} ({product.price}){" "}
-            </p>
-          </div>
+         <div
+         key={product.id}
+         style={{
+           display: "grid",
+           gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+           border: "1px solid black",
+           margin: "10px",
+           padding: "10px",
+         }}
+       >
+         <div style={{ display: "flex", justifyContent: "space-between" }}>
+           <span>
+             {product.name} ({product.price}) - {product.quantity}
+           </span>
+         </div>
+         <div>
+           <button  onClick={() => handleDecrement(product)}>-</button>
+           <span>{cart.get(product.id)?.quantity || 0}</span>
+           <button onClick={() => handleIncrement(product)}>+</button>
+         </div>
+       </div>
+       
         ))}
       </div>
     </div>
